@@ -34,7 +34,7 @@ function startgame()
     pad_h = 3
     pad_c = 7 --paddle color
     
-    brick_w = 10
+    brick_w = 9
     brick_h = 4
     brick_c = 14
     buildbricks()
@@ -50,19 +50,23 @@ function buildbricks()
     brick_x = {}
     brick_y = {}
     brick_v = {} --visibility
-    for i = 1, 10 do
+    for i = 1, 66 do
         add(brick_x, 
-            5 
-            + (i - 1) 
+            4 
+            + (i - 1)
+            % 11
             * (brick_w + 2))
-        add(brick_y, 20)
+        add(brick_y, 
+            20 
+            + flr((i - 1) / 11)
+            * (brick_h + 2))
         add(brick_v, true)
     end
 end
 
 function serveball()
-    ball_x = 5
-    ball_y = 33
+    ball_x = 10
+    ball_y = 70
     ball_dx = 1
     ball_dy = 1
 end
@@ -154,7 +158,7 @@ function update_game()
     end
     
     for i = 1, #brick_x do
-        --check if ball hit brick
+        --did ball hit brick?
         if brick_v[i]
             and ball_box(
                 nextx,
@@ -164,7 +168,7 @@ function update_game()
                 brick_w,
                 brick_h)
         then
-            --deal with collision
+            --process collision
             --find out in which
             --direction
             if deflx_ball_box(
@@ -177,9 +181,11 @@ function update_game()
                 brick_w,
                 brick_h)
             then
-                ball_dx = -ball_dx
+                ball_dx 
+                = -ball_dx
             else
-                ball_dy = -ball_dy
+                ball_dy 
+                = -ball_dy
             end
             sfx(3)
             brick_v[i] = false
@@ -292,21 +298,21 @@ function ball_box(
     box_w,
     box_h)
     
-    -- checks for a collision of
-    -- ball with a square
-    if by - ball_r
-        > box_y + box_h
+    --checks for a collision of
+    --ball with a square
+    if (by - ball_r)
+        > (box_y + box_h)
     then
         return false
-    elseif by + ball_r
+    elseif (by + ball_r)
         < box_y
     then
         return false
-    elseif bx - ball_r
-        > box_x + box_w
+    elseif (bx - ball_r)
+        > (box_x + box_w)
     then
         return false
-    elseif bx + ball_r
+    elseif (bx + ball_r)
         < box_x
     then
         return false
@@ -324,78 +330,43 @@ function deflx_ball_box(
     ty,
     tw,
     th)
-    --[[ calculate whether to
-    deflect horizontally or
-    vertically ]]
+    local slp = bdy / bdx
+    local cx, cy
     if bdx == 0 then
-        -- moving vertically
         return false
     elseif bdy == 0 then
-        -- moving horizontally
         return true
+    elseif (slp > 0)
+        and (bdx > 0)
+    then
+        cx = tx - bx
+        cy = ty - by
+        return (cx > 0)
+            and ((cy / cx)
+            < slp)
+    elseif (slp < 0)
+        and (bdx > 0)
+    then
+        cx = tx - bx
+        cy = ty + th - by
+        return (cx > 0)
+            and ((cy / cx)
+            >= slp)
+    elseif (slp > 0)
+        and (bdx < 0)
+    then
+        cx = tx + tw - bx
+        cy = ty + th - by
+        return (cx < 0)
+            and ((cy / cx)
+            <= slp)
     else
-        -- moving diagonally
-        -- calculate slope
-        local slp = bdy / bdx
-        local cx, cy
-        -- check variants
-        if slp > 0
-            and bdx > 0
-        then
-            -- moving down right
-            cx = tx - bx
-            cy = ty - by
-            if cx <= 0 then
-                return false
-            elseif cy / cx
-                < slp then
-                return true
-            else
-                return false
-            end
-        elseif slp < 0
-            and bdx > 0
-        then
-            cx = tx - bx
-            cy = ty + ty - by
-            if cx <= 0 then
-                return false
-            elseif cy / cx
-                < slp then
-                return false
-            else
-                return true
-            end
-        elseif slp > 0
-            and bdx < 0
-        then
-            -- moving left up
-            cx = tx + tw - bx
-            cy = ty + th - by
-            if cx >= 0 then
-                return false
-            elseif cy / cx
-                > slp then
-                return false
-            else
-                return true
-            end
-        else
-            -- moving left down
-            cx = tx + tw - bx
-            cy = ty - by
-            if cx >= 0 then
-                return false
-            elseif cy / cx
-                < slp
-            then
-                return false
-            else
-                return true
-            end
-        end
+        cx = tx + tw - bx
+        cy = ty - by
+        return (cx < 0)
+            and ((cy / cx)
+            >= slp)
     end
-    return false
 end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
