@@ -10,7 +10,6 @@ __lua__
 -- 6. (powerups)
 -- 7. juiciness (particles/screenshake)
 -- 8. high score
-
 function _init()
 	cls()
 	mode = "start"
@@ -49,7 +48,6 @@ function startgame()
 	brick_c = 14
 	buildbricks()
 	--brick_y = 20
-	
 	lives = 3
 	points = 0
 	serveball()
@@ -59,16 +57,16 @@ function buildbricks()
 	local i
 	brick_x = {}
 	brick_y = {}
-	brick_v = {} --visibility
+	brick_v = {}--visibility
 	for i = 1, 66 do
-		add(brick_x, 
-			4 
-			+ (i - 1)
+		add(
+			brick_x,
+			4 + (i - 1)
 			% 11
 			* (brick_w + 2))
-		add(brick_y, 
-			20 
-			+ flr((i - 1) / 11)
+		add(
+			brick_y,
+			20 + flr((i - 1) / 11)
 			* (brick_h + 2))
 		add(brick_v, true)
 	end
@@ -112,28 +110,20 @@ function update_game()
 	end
 	pad_x = pad_x + pad_dx
 	pad_x = mid(
-		0,
-		pad_x,
-		127 - pad_w)
+		0, pad_x, 127 - pad_w)
 	
 	nextx = ball_x + ball_dx
 	nexty = ball_y + ball_dy
 	
-	if nextx > 124 or
-		nextx < 3 then
-		nextx = mid(
-			0,
-			nextx,
-			127)
+	if nextx > 124
+		or nextx < 3 then
+		nextx = mid(0, nextx, 127)
 		ball_dx = -ball_dx
 		sfx(0)
 	end
 	
 	if nexty < 11 then
-		nexty = mid(
-			0,
-			nexty,
-			127)
+		nexty = mid(0, nexty, 127)
 		ball_dy = -ball_dy
 		sfx(0)
 	end
@@ -161,11 +151,13 @@ function update_game()
 			pad_h)
 		then
 			ball_dx = -ball_dx
-			if ball_x < pad_x + (pad_w / 2)
+			if ball_x < pad_x
+				+ (pad_w / 2)
 			then
-			   nextx = pad_x - ball_r
+				nextx = pad_x - ball_r
 			else
-				nextx = pad_x + pad_w + ball_r
+				nextx = pad_x + pad_w
+					+ ball_r
 			end
 		else
 			ball_dy = -ball_dy
@@ -190,7 +182,7 @@ function update_game()
 			--process collision
 			--find out in which
 			--direction
-			if not(brickhit) then
+			if not (brickhit) then
 				if deflx_ball_box(
 					ball_x,
 					ball_y,
@@ -201,11 +193,9 @@ function update_game()
 					brick_w,
 					brick_h)
 				then
-					ball_dx 
-					= -ball_dx
+					ball_dx = -ball_dx
 				else
-					ball_dy 
-					= -ball_dy
+					ball_dy = -ball_dy
 				end
 			end
 			brickhit = true
@@ -258,10 +248,7 @@ function draw_gameover()
 	--cls()
 	rectfill(0, 60, 127, 75, 0)
 	print(
-		"game over",
-		46,
-		62,
-		7)
+		"game over", 46, 62, 7)
 	print(
 		"press ❎ to restart",
 		27,
@@ -287,25 +274,20 @@ function draw_game()
 	
 	--draw bricks
 	for i = 1, #brick_x do
-
+		
 		if brick_v[i] then
 			rectfill(
 				brick_x[i],
 				brick_y[i],
-				brick_x[i] 
-				+ brick_w,
-				brick_y[i] 
-				+ brick_h,
+				brick_x[i] + brick_w,
+				brick_y[i] + brick_h,
 				brick_c)
 		end
-	end	
+	end
 	
 	rectfill(0, 0, 127, 7, 0)
 	print(
-		"lives:" .. lives,
-		1,
-		1,
-		6)
+		"lives:" .. lives, 1, 1, 6)
 	print("score:" .. points,
 		40,
 		1,
@@ -313,12 +295,8 @@ function draw_game()
 end
 
 function ball_box(
-	bx,
-	by,
-	box_x,
-	box_y,
-	box_w,
-	box_h)
+	bx, by, box_x, box_y,
+	box_w, box_h)
 	
 	--checks for a collision of
 	--ball with a square
@@ -326,16 +304,14 @@ function ball_box(
 		> (box_y + box_h)
 	then
 		return false
-	elseif (by + ball_r)
-		< box_y
+	elseif (by + ball_r) < box_y
 	then
 		return false
 	elseif (bx - ball_r)
 		> (box_x + box_w)
 	then
 		return false
-	elseif (bx + ball_r)
-		< box_x
+	elseif (bx + ball_r) < box_x
 	then
 		return false
 	end
@@ -344,14 +320,8 @@ function ball_box(
 end
 
 function deflx_ball_box(
-	bx,
-	by,
-	bdx,
-	bdy,
-	tx,
-	ty,
-	tw,
-	th)
+	bx, by, bdx, bdy,
+	tx, ty, tw, th)
 	local slp = bdy / bdx
 	local cx, cy
 	if bdx == 0 then
@@ -364,30 +334,26 @@ function deflx_ball_box(
 		cx = tx - bx
 		cy = ty - by
 		return (cx > 0)
-			and ((cy / cx)
-			< slp)
+			and ((cy / cx) < slp)
 	elseif (slp < 0)
 		and (bdx > 0)
 	then
 		cx = tx - bx
 		cy = ty + th - by
 		return (cx > 0)
-			and ((cy / cx)
-			>= slp)
+			and ((cy / cx) >= slp)
 	elseif (slp > 0)
 		and (bdx < 0)
 	then
 		cx = tx + tw - bx
 		cy = ty + th - by
 		return (cx < 0)
-			and ((cy / cx)
-			<= slp)
+			and ((cy / cx) <= slp)
 	else
 		cx = tx + tw - bx
 		cy = ty - by
 		return (cx < 0)
-			and ((cy / cx)
-			>= slp)
+			and ((cy / cx) >= slp)
 	end
 end
 __gfx__
