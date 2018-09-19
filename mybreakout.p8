@@ -8,7 +8,11 @@ __lua__
 -- 4. levels
 -- 5. different bricks
 -- 6. (powerups)
--- 7. juiciness (particles/screenshake)
+-- 7. juiciness 
+--     arrow animation
+--     text blinking
+--     particles
+--     screenshake
 -- 8. high score
 function _init()
 	cls()
@@ -50,6 +54,9 @@ function startgame()
 	--brick_y = 20
 	lives = 3
 	points = 0
+	
+	sticky = true
+	
 	serveball()
 end
 
@@ -73,10 +80,12 @@ function buildbricks()
 end
 
 function serveball()
-	ball_x = 10
-	ball_y = 70
+	ball_x = pad_x 
+		+ flr(pad_w / 2)
+	ball_y = pad_y - (ball_r + 1)
 	ball_dx = 1
-	ball_dy = 1
+	ball_dy = -1
+	sticky = true
 end
 
 function gameover()
@@ -100,10 +109,19 @@ function update_game()
 		--left
 		pad_dx = -2.5
 		btn_p = true
+		if sticky then
+			ball_dx = -1
+		end
 	elseif btn(1) then
 		--right
 		pad_dx = 2.5
 		btn_p = true
+		if sticky then
+			ball_dx = 1
+		end
+	end
+	if sticky and btnp(4) then
+		sticky = false
 	end
 	if not (btn_p) then
 		pad_dx = pad_dx / 1.3
@@ -111,110 +129,117 @@ function update_game()
 	pad_x = pad_x + pad_dx
 	pad_x = mid(
 		0, pad_x, 127 - pad_w)
+
+	if sticky then
+		ball_x = pad_x 
+			+ flr(pad_w / 2)
+		ball_y = pad_y - (ball_r	+ 1)
+	else
+		--regular ball physics
+		nextx = ball_x + ball_dx
+		nexty = ball_y + ball_dy
 	
-	nextx = ball_x + ball_dx
-	nexty = ball_y + ball_dy
+		if nextx > 124
+			or nextx < 3 then
+			nextx = mid(0, nextx, 127)
+			ball_dx = -ball_dx
+			sfx(0)
+		end
 	
-	if nextx > 124
-		or nextx < 3 then
-		nextx = mid(0, nextx, 127)
-		ball_dx = -ball_dx
-		sfx(0)
-	end
+		if nexty < 10 then
+			nexty = mid(0, nexty, 127)
+			ball_dy = -ball_dy
+			sfx(0)
+		end
 	
-	if nexty < 11 then
-		nexty = mid(0, nexty, 127)
-		ball_dy = -ball_dy
-		sfx(0)
-	end
-	
-	-- check if ball hit pad
-	if ball_box(
-		nextx,
-		nexty,
-		pad_x,
-		pad_y,
-		pad_w,
-		pad_h)
-	then
-		-- deal with collision
-		-- find out in which
-		-- direction
-		if deflx_ball_box(
-			ball_x,
-			ball_y,
-			ball_dx,
-			ball_dy,
+		-- check if ball hit pad
+		if ball_box(
+			nextx,
+			nexty,
 			pad_x,
 			pad_y,
 			pad_w,
 			pad_h)
-		then
-			ball_dx = -ball_dx
-			if ball_x < pad_x
-				+ (pad_w / 2)
 			then
-				nextx = pad_x - ball_r
+			-- deal with collision
+			-- find out in which
+			-- direction
+			if deflx_ball_box(
+				ball_x,
+				ball_y,
+				ball_dx,
+				ball_dy,
+				pad_x,
+				pad_y,
+				pad_w,
+				pad_h)
+			then
+				ball_dx = -ball_dx
+				if ball_x < pad_x
+					+ (pad_w / 2)
+				then
+					nextx = pad_x - ball_r
+				else
+					nextx = pad_x + pad_w
+						+ ball_r
+				end
 			else
-				nextx = pad_x + pad_w
-					+ ball_r
+				ball_dy = -ball_dy
+				nexty = pad_y - ball_r
 			end
-		else
-			ball_dy = -ball_dy
-			nexty = pad_y - ball_r
+			sfx(1)
+			points = points + 1
 		end
-		sfx(1)
-		points = points + 1
-	end
 	
-	brickhit = false
-	for i = 1, #brick_x do
-		--did ball hit brick?
-		if brick_v[i]
-			and ball_box(
-				nextx,
-				nexty,
-				brick_x[i],
-				brick_y[i],
-				brick_w,
-				brick_h)
-		then
-			--process collision
-			--find out in which
-			--direction
-			if not (brickhit) then
-				if deflx_ball_box(
-					ball_x,
-					ball_y,
-					ball_dx,
-					ball_dy,
+		brickhit = false
+		for i = 1, #brick_x do
+			--did ball hit brick?
+			if brick_v[i]
+				and ball_box(
+					nextx,
+					nexty,
 					brick_x[i],
 					brick_y[i],
 					brick_w,
 					brick_h)
-				then
-					ball_dx = -ball_dx
-				else
-					ball_dy = -ball_dy
+			then
+				--process collision
+				--find out in which
+				--direction
+				if not (brickhit) then
+					if deflx_ball_box(
+						ball_x,
+						ball_y,
+						ball_dx,
+						ball_dy,
+						brick_x[i],
+						brick_y[i],
+						brick_w,
+						brick_h)
+					then
+						ball_dx = -ball_dx
+					else
+						ball_dy = -ball_dy
+					end
 				end
+				brickhit = true
+				sfx(3)
+				brick_v[i] = false
+				points = points + 10
 			end
-			brickhit = true
-			sfx(3)
-			brick_v[i] = false
-			points = points + 10
 		end
-	end
 	
-	ball_x = nextx
-	ball_y = nexty
+		ball_x = nextx
+		ball_y = nexty
 	
-	if nexty > 127 then
-		sfx(2)
-		lives = lives - 1
-		if lives < 0 then
-			gameover()
-		else
-			serveball()
+		if nexty > 127 then
+			sfx(2)
+			lives = lives - 1
+			if lives < 0 then
+				gameover()
+			else
+				serveball()
+			end
 		end
 	end
 end
@@ -265,6 +290,15 @@ function draw_game()
 		ball_y,
 		ball_r,
 		10)
+	if sticky then
+		--serve preview
+		line(
+			ball_x + (ball_dx * 4), 
+			ball_y + (ball_dy * 4), 
+			ball_x + (ball_dx * 6),
+			ball_y + (ball_dy * 6),
+			10)
+	end
 	rectfill(
 		pad_x,
 		pad_y,
