@@ -2,36 +2,47 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 function _init()
-	x = 0
-	y = 0
+	sprite_x = 0
+	sprite_dx = 1
+	sprite_y = 0
+	sprite_dy = 1
+	sprite_hw = 8 --sprites are 8x8 pixels
+	sprite_min = 0
+	sprite_max = 119 --127-8
 end
 
 function _update()
-	if btn(0) then x = x - 1 end
-	if btn(1) then x = x + 1 end
-	if btn(2) then y = y - 1 end
-	if btn(3) then y = y + 1 end
-	if x < 0 then 
-		x = 0 
+	if btn(0) then 
+		sprite_x = sprite_x - sprite_dx 
+	elseif btn(1) 
+	then 
+		sprite_x = sprite_x + sprite_dx
+	elseif btn(2) then 
+		sprite_y = sprite_y - sprite_dy
+	elseif btn(3) then 
+		sprite_y = sprite_y + sprite_dy
+	end
+	if sprite_x < sprite_min then 
+		sprite_x = sprite_min 
 		sfx(0) 
 	end
-	if x > 120 then 
-		x = 120 
+	if sprite_x > sprite_max then 
+		sprite_x = sprite_max 
 		sfx(0) 
 	end
-	if y < 0 then 
-		y = 0 
+	if sprite_y < sprite_min then 
+		sprite_y = sprite_min 
 		sfx(0) 
 	end
-	if y > 120 then 
-		y = 120 
+	if sprite_y > sprite_max then 
+		sprite_y = sprite_max 
 		sfx(0) 
 	end
 end
 
 function _draw()
 	cls(1)
-	spr(1, x, y)
+	spr(1, sprite_x, sprite_y)
 end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

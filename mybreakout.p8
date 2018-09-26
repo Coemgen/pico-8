@@ -1,8 +1,9 @@
 pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
---goals
--- 1. stick paddle
+--done:
+-- 1. sticky paddle
+--todo:
 -- 2. angle control
 -- 3. combos
 -- 4. levels
