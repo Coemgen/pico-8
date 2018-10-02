@@ -38,6 +38,13 @@ function _update()
 		player_y = player_max 
 		sfx(0) 
 	end
+	local x = flr(player_x / 8)
+	local y = flr(player_y % 64 / 8)
+	if fget(mget(x, y), 1) == true then
+		player_x = player_x + 8
+		player_y = player_y + 8
+		sfx(0)
+	end
 end
 
 function _draw()
